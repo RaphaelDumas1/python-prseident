@@ -22,7 +22,7 @@ def game_loop(g: PresidentGame):
 
         while g.main_player.has_symbol(choice) == 0:
             choice = input('What value do you wish to play ? ')
-
+            nb_cards = input('how many of these do you want to play ?')
         plays = g.main_player.play(choice)
         print(f"You play {plays}")
 
@@ -47,5 +47,7 @@ if __name__ == '__main__':
         ********************************************* """)
     g = PresidentGame()
     g.distribute_cards()
+    g.announce_players()
+
     game_loop(g)
     print('Thank you for playing. I hope you enjoyed !')

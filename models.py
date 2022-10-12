@@ -107,7 +107,7 @@ class Player:
     def name(self):
         return self._name
 
-    def play(self, symbol) -> list:
+    def play(self, symbol, nb_cards: int) -> list:
         """
         Remove from the hand of the player, all cards having a corresponding symbol.
         Args:
@@ -178,6 +178,9 @@ class PresidentGame:
             self.__players[giving_card_to_player].add_to_hand(card)
             giving_card_to_player = (giving_card_to_player+1) % nb_players
 
+    def announce_players(self):
+        for i, player in enumerate(self.players):
+            print(f'vous jouer contre {player.name} possedant {len(player.hand)} en main')
     @property
     def players(self):
         return self.__players
