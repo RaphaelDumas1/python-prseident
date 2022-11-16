@@ -25,7 +25,7 @@ VALUES = {
 
 
 class Deck:
-    """ Deck du jeu de société du Président. """
+    """ Deck duu jeu de société du Président. """
     def __init__(self):
         self.__cards: list = []
         """ Génération d'un deck de 52 cartes"""
