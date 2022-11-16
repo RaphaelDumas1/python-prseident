@@ -1,7 +1,12 @@
 import random
 import names
+import numpy
+from tkinter import *
+from PIL import Image, ImageTk, ImageFont
+import PIL.Image
+import PIL.ImageTk
 
-COLORS = ['♡', '♤', '♧', '♢']
+COLORS = ['♡', '♣', '♦', '♠']
 VALUES = {
     '2': 15,
     '3': 3,
@@ -107,19 +112,24 @@ class Player:
     def name(self):
         return self._name
 
-    def play(self, symbol, nb_cards: int) -> list:
-        """
-        Remove from the hand of the player, all cards having a corresponding symbol.
-        Args:
-            symbol: The symbol to look for.
-
-        Returns: The cards removed from the hand of the player. It will return an empty array if
-        nothing is found.
-
-        """
-        cards_played = [card for card in self._hand if card.symbol ==
-                        symbol]
-        self.remove_from_hand(cards_played)
+    def play(self, choice, nb_cards: int) -> list:
+        symbol = choice
+        choice_value = VALUES[choice]
+        if int(choice_value) > self.hand[-1].value or choice_value == 15 :
+            print('vous ne pouvez pas jouer')
+            cards_played = []
+        else:
+            print(symbol)
+            while self.has_symbol(symbol) == 0:
+                print(VALUES[symbol])
+                while symbol is None or VALUES[symbol] <= choice_value:
+                    print('y')
+                    symbol = choice
+            cards_pla = [card for card in self._hand if card.symbol ==
+                            symbol]
+            cards_played = cards_pla[:int(nb_cards)]
+            self.remove_from_hand(cards_played)
+            print(f"You play {cards_played}")
         return cards_played
 
     def __repr__(self):
@@ -134,7 +144,8 @@ class Player:
 
 
 class AIPlayer(Player):
-    def play(self, choice, nb_cards: int) -> list:
+    def play(self, choice, nb_cards : int) -> list:
+        choice_value = VALUES[choice]
         """
         Play a card correspondig to what has been played on the table.
         TODO: Implement an AI
@@ -145,14 +156,23 @@ class AIPlayer(Player):
         Returns: An array of cards to play.
 
         """
+        cards_played = []
         best_choice = None
+
         for index, card in enumerate(self.hand):
-            if best_choice is None and card.symbol >= choice and \
+            if best_choice is None and VALUES[card.symbol] >= choice_value and \
                     self.has_symbol(card.symbol) >= \
                     nb_cards:
                 cards_played = self._hand[index:index+nb_cards]
+                self.remove_from_hand(cards_played)
                 best_choice = card.symbol
-        return cards_played if best_choice is not None else []
+        if choice_value == 15:
+            cards_played = []
+        if len(cards_played) == 0:
+            print(f'{self.name} ne peut pas jouer')
+        else:
+            print(f"{self.name} plays \t {cards_played}")
+        return cards_played
 
 
 class PresidentGame:
@@ -181,6 +201,8 @@ class PresidentGame:
     def announce_players(self):
         for i, player in enumerate(self.players):
             print(f'vous jouer contre {player.name} possedant {len(player.hand)} en main')
+
+
     @property
     def players(self):
         return self.__players
