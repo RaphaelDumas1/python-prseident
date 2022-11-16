@@ -97,12 +97,12 @@ def game_loop(g: PresidentGame):
                             l = m + i * 30
                             if previous_choice is None:
                                 placed_card = Button(cadredessin, text=f"{card.symbol}",
-                                                command=lambda card=card: button_choice(card, None), width=3, height=2)
+                                                command=lambda card=card: button_choice(card), width=3, height=2)
                             elif previous_choice is not None:
                                 print(card.value)
                                 if card.value >= previous_choice.value:
                                     placed_card = Button(cadredessin, text=f"{card.symbol}",
-                                                         command=lambda card=card: button_choice(card, None), width=3,
+                                                         command=lambda card=card: button_choice(card), width=3,
                                                          height=2)
                                 else:
                                     placed_card = Label(cadredessin, text=f"{card.symbol}", width=3,
@@ -111,7 +111,7 @@ def game_loop(g: PresidentGame):
                             placed_cards[num] = placed_card
                             if i == (len(player.hand) - 1):
                                 pass_button = Button(cadredessin, text=f"Pass",
-                                            command=lambda card=previous_choice: button_choice(None, card), width=3, height=2)
+                                            command=lambda card=previous_choice: button_pass(card), width=3, height=2)
                                 pass_button.place(x=(l + 40), y=520)
                                 placed_cards[0] = pass_button
                         if f == 1:
@@ -137,15 +137,20 @@ def game_loop(g: PresidentGame):
                     current_player = 0
                     return current_player
                 elif current_player < 0:
-                    current_player = 3 - (-current_player)
+                    z = [0, 1, 2, 3]
+                    current_player = z[current_player]
                     return current_player
-            def next_player(choice, current_player):
+            def next_player(choice = None, current_player = None):
                 new_current_player = manage_list(current_player)
                 global player
                 player = g.players[new_current_player]
                 if new_current_player != 0:
-                    card_played = player.play(choice.symbol, 1)
+                    if choice is not None:
+                        card_played = player.play(choice.symbol, 1)
+                    else:
+                        card_played = player.play(None, 1)
                     if len(card_played) != 0:
+                        root.after(1, cant_play.set, 0)
                         choice = card_played[0]
 
                         cadredessin.after(2000, lambda: widget.config(text=f'{choice.symbol}'))
@@ -153,34 +158,57 @@ def game_loop(g: PresidentGame):
                         root.wait_variable(var1)
                         print(card_played[0])
                         place_cards(choice, f)
+                        return next_player(choice, new_current_player)
                     elif len(card_played) == 0:
                         o = cant_play.get() + 1
-                        root.setvar(cant_play, o)
-                        widget1 = Label(cadredessin, text=f'{player.name} ne peut pas jouer', fg='black', bg='white', borderwidth=2, relief='solid')
-                        cadredessin.create_window(300, 400, window=widget1, width=200, height=100)
-                        print(widget1)
-                        root.after(2000, var1.set, 1)
-                        root.wait_variable(var1)
-                        widget1.destroy()
+                        root.after(1, cant_play.set, o)
                         place_cards(choice, f)
-
-                    return next_player(choice, new_current_player)
+                        if cant_play.get() == 3:
+                            current_player = current_player - 4
+                            y = manage_list(current_player)
+                            widget1 = Label(cadredessin, text=f'{g.players[y].name} a gagner le tour', fg='black', bg='white',
+                                            borderwidth=2, relief='solid')
+                            cadredessin.create_window(300, 300, window=widget1, width=200, height=200)
+                            root.after(2000, var1.set, 1)
+                            root.wait_variable(var1)
+                            widget1.destroy()
+                            root.after(1, cant_play.set, 0)
+                            if y == 0:
+                                pass
+                            else:
+                                return next_player(None, y)
+                        else:
+                            widget1 = Label(cadredessin, text=f'{player.name} ne peut pas jouer', fg='black',
+                                            bg='white', borderwidth=2, relief='solid')
+                            cadredessin.create_window(300, 400, window=widget1, width=200, height=100)
+                            root.after(2000, var1.set, 1)
+                            root.wait_variable(var1)
+                            widget1.destroy()
+                            return next_player(choice, new_current_player)
                 else:
                     pass
-            def button_choice(choice = None, previous_choice = None):
+            def button_pass(previous_choice):
+                choice = previous_choice
                 current_player = 0
-                if previous_choice != None:
-                    choice = previous_choice.symbol
-                    o = cant_play.get() + 1
-                    root.setvar(cant_play, o)
-                    if cant_play.get() == 3:
-                        widget1 = Label(cadredessin, text=f'{player.name} a gagner le tour', fg='black', bg='white',
-                                        borderwidth=2, relief='solid')
-                        cadredessin.create_window(300, 300, window=widget1, width=200, height=200)
-                else:
-                    card_played = player.play(choice.symbol, 1)
-                    choice = card_played[0]
-                    cadredessin.after(0, lambda: widget.config(text=f'{choice}'))
+                o = cant_play.get() + 1
+                root.after(1, cant_play.set, o)
+                if cant_play.get() == 3:
+                    current_player = current_player - 4
+                    y = manage_list(current_player)
+                    widget1 = Label(cadredessin, text=f'{g.players[y].name} a gagner le tour', fg='black', bg='white',
+                                    borderwidth=2, relief='solid')
+                    cadredessin.create_window(300, 300, window=widget1, width=200, height=200)
+                    root.after(2000, var1.set, 1)
+                    root.wait_variable(var1)
+                    widget1.destroy()
+                    root.after(1, cant_play.set, 0)
+                    return next_player(None, y)
+                return next_player(choice, current_player)
+            def button_choice(choice = None):
+                root.after(1, cant_play.set, 0)
+                card_played = player.play(choice.symbol, 1)
+                choice = card_played[0]
+                cadredessin.after(0, lambda: widget.config(text=f'{choice}'))
                 place_cards(None, f)
                 return next_player(choice, current_player)
             root.mainloop()

@@ -145,6 +145,8 @@ class Player:
 
 class AIPlayer(Player):
     def play(self, choice, nb_cards : int) -> list:
+        if choice is None:
+            choice = self.hand[0].symbol
         choice_value = VALUES[choice]
         """
         Play a card correspondig to what has been played on the table.
